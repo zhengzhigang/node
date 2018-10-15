@@ -1,0 +1,12 @@
+# Created by .ignore support plugin (hsz.mobi)
+
+# IDE
+.idea/
+.DS_Store
+
+# package
+node_modules/
+logs/
+tasks/celery.log
+nohup.out
+
