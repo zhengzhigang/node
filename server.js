@@ -1,11 +1,13 @@
 var http = require('http');
 var cheerio = require('cheerio');
 
-var url = 'http://www.ziroom.com/';
+var url = 'http://www.webpagefx.com/tools/emoji-cheat-sheet/';
 
 http.get(url, function (res) {
     var html = '';
     res.on('data', function (data) {
+        console.log(data)
+
         html += data;
     });
     res.on('end', function () {

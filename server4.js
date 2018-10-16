@@ -1,8 +1,9 @@
 const request = require('request');
 const fs = require('fs');
-var city = require('./config/city.js');
-var mysql = require('mysql');
-console.log(mysql)
+let city = require('./config/city.js');
+let mysql = require('mysql');
+let sql_config = require('./config');
+let operate = require('./sql_operate');
 
 
 class portProxy {
@@ -31,7 +32,7 @@ class portProxy {
         request(this.options, (err, res, body) => {
             this.proxy = body.data.proxy_list.map(item => 'http://' + item);
             // _fetch_hospital.start('first')
-            _fetch_jd.start();
+            _fetch_lg.start();
         });
     }
 
@@ -42,7 +43,7 @@ class portProxy {
     }
 }
 
-class Fetch_jd {
+class Fetch_lg {
     constructor () {
         this.list = [];
         this.requestNo = 0;
@@ -99,9 +100,29 @@ class Fetch_jd {
                     // 替换IP
                     this.options.proxy = _portProxy.proxy[0]
                 }
-                if (this.options.qs.pageNo < 100000) {
+                if (this.options.qs.pageNo < 5) {
                     this.start();
                 } else {
+                    let connection = mysql.createConnection(sql_config.sql('test'));
+                    connection.connect();
+                    connection.query('CREATE DATABASE position');
+                    let addSql = operate.add_sql('positions', 'positionId, positionName, city, createTime, salary, companyId, companyName, companyFullName');
+                    let list = [];
+                    for (let i = 0; i < this.list.length; i++) {
+                        list.push([this.list[i]['positionId'], this.list[i]['positionName'], this.list[i]['city'], this.list[i]['createTime'], this.list[i]['salary'], this.list[i]['companyId'], this.list[i]['companyName'], this.list[i]['companyFullName']]);
+                    }
+                    console.log(list)
+                    connection.query(addSql,[list],function (err, result) {
+                        if(err){
+                            console.log('[INSERT ERROR] - ',err.message);
+                            return;
+                        }
+                       console.log('--------------------------INSERT----------------------------');
+                       //console.log('INSERT ID:',result.insertId);
+                       console.log('INSERT ID:',result);
+                       console.log('-----------------------------------------------------------------\n\n');  
+                    });
+                    connection.end();
                     fs.writeFileSync('position.json', JSON.stringify(this.list));
                 }
             } else {
@@ -109,7 +130,7 @@ class Fetch_jd {
                 console.log('proxy', _portProxy.proxy)
                 console.log('length / 2', _portProxy.proxy[parseInt(_portProxy.proxy.length / 2)])
                 this.options.proxy = _portProxy.proxy[parseInt(_portProxy.proxy.length / 2)]
-                if (this.options.qs.pageNo < 100000) {
+                if (this.options.qs.pageNo < 5) {
                     this.start();
                 } else {
                     fs.writeFileSync('position.json', JSON.stringify(this.list));
@@ -199,6 +220,6 @@ class fetch_hostipal {
 
 let _portProxy = new portProxy();
 let _fetch_hospital = new fetch_hostipal();
-let _fetch_jd = new Fetch_jd();
+let _fetch_lg = new Fetch_lg();
 
 _portProxy.getIp()
