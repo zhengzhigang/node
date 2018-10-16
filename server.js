@@ -19,6 +19,7 @@ http.get(url, function (res) {
 });
 
 function filterSlideList (html) {
+    console.log(html)
     if (html) {
         var $ = cheerio.load(html);
         var slideList = $('#partB .bd');
