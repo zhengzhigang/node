@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style media="screen">
+        #ul1 {width:400px; height:300px; border:1px solid black; overflow:auto;}
+        #ul1 li.me {color:green}
+        .err_box {width:100%; height:20px; line-height: 20px; text-align:center; color:red; display:none}
+        </style>
+        <script src="http://localhost:3110/socket.io/socket.io.js" charset="utf-8"></script>
+        <script>
+        let sock=io.connect('ws://localhost:3110/');
+
+        sock.on('connect', (a)=>{
+        document.getElementsByClassName('err_box')[0].style.display='none';
+        });
+        sock.on('disconnect', ()=>{
+        document.getElementsByClassName('err_box')[0].style.display='block';
+        });
+
+        //聊天室
+        window.onload=function (){
+        let oTxt=document.getElementById('txt1');
+        let oBtn=document.getElementById('btn1');
+        let oUl=document.getElementById('ul1');
+
+        oBtn.onclick=function (){
+            sock.emit('msg', oTxt.value);
+
+            let oLi=document.createElement('li');
+            oLi.innerHTML=oTxt.value;
+            oLi.className='me';
+
+            oTxt.value='';
+
+            oUl.appendChild(oLi);
+        };
+
+        sock.on('msg', str=>{
+            let oLi=document.createElement('li');
+
+            oLi.innerHTML=str;
+            oUl.appendChild(oLi);
+        });
+        };
+        </script>
+    </head>
+    <body>
+        <div class="err_box">
+        无法连接到服务器，请检查网络
+        </div>
+        <ul id="ul1"></ul>
+        <textarea rows="4" cols="60" id="txt1"></textarea>
+        <input type="button" value="发送" id="btn1">
+        <div>
+        <form action="http://127.0.0.1:3000/" method="get">
+            <input type="text" name="name"/>
+            <input type="text" name="age">
+            <input type="submit" value="提交"/>
+        </form>
+        </div>
+        <script>
+            class CreateUser {
+                constructor (name) {
+                    this.name = name
+                    this.getName()
+                }
+                getName () {
+                    return this.name
+                }
+            }
+
+            let ProxyMode = (function () {
+                let instance = null
+                return function name (name) {
+                    if (!instance) {
+                        instance = new CreateUser(name)
+                    }
+                    return instance
+                }
+            })() 
+
+            let a = new ProxyMode('郑志刚')
+            console.log(a.getName())
+        </script>
+    </body>
+</html>
